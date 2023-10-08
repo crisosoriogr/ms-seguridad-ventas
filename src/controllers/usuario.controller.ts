@@ -19,11 +19,15 @@ import {
 } from '@loopback/rest';
 import {Usuario} from '../models';
 import {UsuarioRepository} from '../repositories';
+import {SeguridadUsuarioService} from '../services/seguridad-usuario.service';
+import {service} from '@loopback/core';
 
 export class UsuarioController {
   constructor(
     @repository(UsuarioRepository)
     public usuarioRepository : UsuarioRepository,
+    @service(SeguridadUsuarioService)
+    public servicioSeguridad: SeguridadUsuarioService
   ) {}
 
   @post('/usuario')
@@ -44,6 +48,20 @@ export class UsuarioController {
     })
     usuario: Omit<Usuario, '_id'>,
   ): Promise<Usuario> {
+    //CREAR LA CLAVE
+
+    const clave=this.servicioSeguridad.createClave();
+    console.log(clave);
+
+
+
+
+    //CIFRAR LA CLAVE
+    const claveCifrada=this.servicioSeguridad.cifrarTexto(clave);
+
+    //ASGINAR LA CLAVE AL USUARIO
+    usuario.clave=claveCifrada;
+    //ENVIAR CORREO ELECTRONICO DE NOTIFICACION
     return this.usuarioRepository.create(usuario);
   }
 
